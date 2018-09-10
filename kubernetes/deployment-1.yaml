@@ -1,0 +1,57 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: k8s-fio-deployment-1
+  namespace: kube-system
+spec:
+  selector:
+    matchLabels:
+      app: k8s-fio
+  template:
+    metadata:
+      labels:
+        app: k8s-fio
+        name: k8s-fio
+    spec:
+      tolerations:
+      - key: CriticalAddonsOnly
+      - operator: Exists
+      containers:
+      - name: k8s-fio
+        image: clusterhq/fio-tool
+        imagePullPolicy: Always
+        env:
+          - name: JOBFILES
+            value: /fio/job.fio
+          - name: PLOTNAME
+            valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 8000
+          initialDelaySeconds: 3
+          periodSeconds: 3
+        ports:
+        - containerPort: 8000
+          protocol: TCP
+        resources:
+          limits:
+            cpu: 16
+            memory: 32G
+          requests:
+            cpu: 16
+            memory: 32G
+        volumeMounts:
+      - name: k8s-fio-job
+        mountPath: /fio/
+      - name: k8s-fio-data
+       mountPath: /fio-data/
+    volumes:
+      - name: k8s-fio-job
+        configMap:
+          name: k8s-fio-job
+      - name: k8s-fio-job
+        persistentVolumeClaim:
+          claimName: pvc-sio-standard-1
