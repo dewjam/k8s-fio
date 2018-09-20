@@ -54,5 +54,5 @@ spec:
           name: k8s-fio-job
       - name: k8s-fio-job
         hostPath:
-          path: /data
+          path: /fio
           type: Directory
